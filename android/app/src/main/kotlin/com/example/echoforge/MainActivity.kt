@@ -1,7 +1,6 @@
 package com.example.echoforge
 
 import android.content.ContentValues
-import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import io.flutter.embedding.android.FlutterActivity
@@ -21,11 +20,19 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
 
             when (call.method) {
-                "saveAudioToDownload" -> {
-                    val fileName = call.argument<String>("fileName")
-                    val audioBytes = call.argument<ByteArray>("audioBytes")
 
-                    if (fileName.isNullOrBlank() || audioBytes == null) {
+                "saveAudioToDownload" -> {
+
+                    val fileName =
+                        call.argument<String>("fileName")
+
+                    val audioBytes =
+                        call.argument<ByteArray>("audioBytes")
+
+                    if (fileName.isNullOrBlank() ||
+                        audioBytes == null ||
+                        audioBytes.isEmpty()
+                    ) {
                         result.error(
                             "INVALID_ARGUMENT",
                             "File name or audio data is missing.",
@@ -36,19 +43,23 @@ class MainActivity : FlutterActivity() {
 
                     try {
                         val values = ContentValues().apply {
+
                             put(
                                 MediaStore.Downloads.DISPLAY_NAME,
                                 fileName
                             )
+
                             put(
                                 MediaStore.Downloads.MIME_TYPE,
                                 "audio/wav"
                             )
+
                             put(
                                 MediaStore.Downloads.RELATIVE_PATH,
                                 Environment.DIRECTORY_DOWNLOADS +
                                     "/EchoForge"
                             )
+
                             put(
                                 MediaStore.Downloads.IS_PENDING,
                                 1
@@ -76,21 +87,24 @@ class MainActivity : FlutterActivity() {
                             output.flush()
                         }
 
-                        values.clear()
-                        values.put(
-                            MediaStore.Downloads.IS_PENDING,
-                            0
-                        )
+                        val completedValues = ContentValues().apply {
+                            put(
+                                MediaStore.Downloads.IS_PENDING,
+                                0
+                            )
+                        }
 
                         resolver.update(
                             uri,
-                            values,
+                            completedValues,
                             null,
                             null
                         )
 
                         result.success(uri.toString())
+
                     } catch (error: Exception) {
+
                         result.error(
                             "SAVE_FAILED",
                             error.message,
