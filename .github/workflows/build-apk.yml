@@ -19,14 +19,13 @@ jobs:
         with:
           channel: stable
 
-      - name: Create Android project
-        run: |
-          flutter create . --platforms=android --project-name=echoforge
-
       - name: Get packages
         run: flutter pub get
 
-      - name: Build APK
+      - name: Analyze Flutter project
+        run: flutter analyze
+
+      - name: Build release APK
         run: flutter build apk --release
 
       - name: Upload APK
